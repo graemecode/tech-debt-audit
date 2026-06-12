@@ -33,6 +33,13 @@ Infer effort from the prompt: `quick`, `standard` (default), or `deep`.
 
 For `branch`, audit changed files since the merge base plus direct callers/importers. Tag each finding as `introduced`, `amplified`, or `pre-existing`.
 
+Treat any other arguments as scope paths, relative to the repo root:
+
+- Audit only the named files/directories plus their direct importers and callers; everything else is out of scope and must be listed under "Not audited" in the report.
+- Scope paths compose with effort keywords (`quick packages/api` = quick pass over `packages/api`) and with `branch` (intersect: branch-changed files within the named paths).
+- If a named path does not exist, do not guess. Tell the user which path is missing, list nearby candidates (`ls` of the parent), and continue with the paths that do exist; if none exist, stop and ask.
+- Record the effective scope in the report's "Scope inspected" line.
+
 ### 2. Recon First
 
 Map the repo before judging it:
