@@ -1,0 +1,12 @@
+{
+  "name": "tech-debt-audit",
+  "description": "Audit any codebase for evidence-backed technical debt and produce prioritized Markdown or HTML reports.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Graeme"
+  },
+  "homepage": "https://github.com/graemecode/tech-debt-audit",
+  "repository": "https://github.com/graemecode/tech-debt-audit",
+  "license": "MIT",
+  "keywords": ["audit", "code-review", "agents", "tech-debt", "architecture", "maintainability"]
+}
