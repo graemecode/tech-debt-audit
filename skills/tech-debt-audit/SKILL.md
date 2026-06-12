@@ -41,6 +41,7 @@ Map the repo before judging it:
 - Read intent docs when present: `CONTEXT.md`, ADRs, RFCs, design docs, product specs, migration plans, and docs that explain current direction.
 - Identify languages, frameworks, package manager, build/test/lint/typecheck commands, test coverage shape, major runtime boundaries, and actively changing areas from git history.
 - Note repo vocabulary and current conventions so findings can distinguish genuine debt from settled local style.
+- Check for prior audit memory: the memo at the path defined in "Persist Audit Memory", and any in-repo reports under `reports/tech-debt/`. Treat previously rejected candidates as settled unless new evidence revives them, and say in the report how many prior rejections were honored.
 
 ### 3. Audit Debt
 
@@ -78,3 +79,13 @@ Default output:
 - In the final response, do not paste the full report. Provide the path and a concise summary of the top findings.
 
 If the user explicitly asks for Markdown, write to an existing reports/docs convention if obvious; otherwise use `reports/tech-debt/tech-debt-report-<YYYY-MM-DD>.md`. If they ask for both Markdown and HTML, still open the HTML report automatically.
+
+### 6. Persist Audit Memory
+
+So rejected candidates do not resurface on the next run, persist a compact memo outside the audited repo after writing the report.
+
+- Memo path: `${XDG_CACHE_HOME:-$HOME/.cache}/tech-debt-audit/<memo-slug>.json` on macOS/Linux, `%LOCALAPPDATA%\tech-debt-audit\<memo-slug>.json` on Windows. Create the directory if needed.
+- `<memo-slug>`: the repo directory name, lowercased, plus `-` plus the first 8 hex chars of the SHA-256 of the remote origin URL (or the absolute repo path when there is no remote). Example: `printf '%s' "https://github.com/acme/api.git" | shasum -a 256 | cut -c1-8`.
+- Memo content (JSON): `schema_version: 1`, `repo` (origin URL or absolute path), `last_audit` (`date`, `commit`, `effort`, `report_path`), `rejected` (array of `{title, reason, evidence}`), `investigate` (array of `{candidate, signal, proof_needed}`).
+- Merge, do not overwrite blindly: keep prior `rejected` entries unless this audit found new evidence that revives them.
+- If the host environment cannot write outside the workspace, skip the memo, and say in the report's Scope section that audit memory is unavailable for this run.

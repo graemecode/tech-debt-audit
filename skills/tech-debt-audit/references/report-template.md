@@ -12,6 +12,7 @@ Use this structure as the content checklist for both HTML and Markdown reports. 
 - **Scope inspected**: <packages, directories, branch changes, or whole repo>
 - **Not audited**: <important exclusions>
 - **Verification commands discovered**: `<command>` -> <known status or "not run">
+- **Prior audit**: <date and commit from audit memory, with N rejected candidates honored; or "none found">
 
 ## Executive Summary
 
@@ -72,3 +73,4 @@ Findings with suggestive but incomplete evidence. Do not mix these with actionab
 - Rejected items explain why they should not come back next run.
 - No secret values, customer data, or runnable misuse steps are included.
 - Suggested slices are small enough to review, but not so small that they preserve the debt.
+- The report states whether prior audit memory was found and honored.

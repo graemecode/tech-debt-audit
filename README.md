@@ -59,7 +59,7 @@ A run against a small API service might come back with findings like:
 | 3 | migration compatibility branch has no expiry  | legacy debt    | M      | MED        |
 ```
 
-And reject weaker candidates so they do not come back next run:
+And reject weaker candidates, recording them in a local audit memo (outside your repo) so they do not come back next run:
 
 ```
 - large generated schema file: not debt; generated from the documented build step.
@@ -78,7 +78,7 @@ See [examples/001-sample-report.md](./examples/001-sample-report.md) for the rep
 
 **Prioritize.** Ranks by leverage: current cost and risk reduced, divided by effort and fix risk, discounted by confidence.
 
-**Report.** Produces and opens an HTML report with a paydown sequence, debt ledger, detailed findings, rejected candidates, and suggested verification gates. Markdown is available on request.
+**Report.** Produces and opens an HTML report with a paydown sequence, debt ledger, detailed findings, rejected candidates, and suggested verification gates. Markdown is available on request. A compact audit memo is saved to your user cache directory (never inside the repo) so the next run honors previous rejections.
 
 ## What makes the report useful
 
