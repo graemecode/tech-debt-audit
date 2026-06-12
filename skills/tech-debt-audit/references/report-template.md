@@ -30,6 +30,8 @@ Use this structure as the content checklist for both HTML and Markdown reports. 
 |----|---------|----------|--------------|--------|--------|------|------------|----------|
 | DEBT-01 | <short title> | <category> | <cost> | <payoff> | S/M/L | LOW/MED/HIGH | HIGH/MED/LOW | `file:line` |
 
+For branch audits, append the origin tag to the Finding cell, e.g. "Centralize auth checks (introduced)". Order introduced findings before pre-existing ones.
+
 ## Findings
 
 ### DEBT-01: <imperative title>
@@ -46,6 +48,7 @@ Use this structure as the content checklist for both HTML and Markdown reports. 
 - **Fix risk**: LOW/MED/HIGH - <why>
 - **Confidence**: HIGH/MED/LOW - <why>
 - **Owner/scope**: <area if inferable>
+- **Origin** (branch audits only): introduced | amplified | pre-existing
 
 ## Investigate Later
 

@@ -159,6 +159,7 @@ Use this by default for every completed technical debt audit. Markdown is an exp
     <h3>DEBT-01: Title</h3>
     <div class="badges">
       <span class="badge">Category</span>
+      <span class="badge">Origin: introduced</span>
       <span class="badge sev-warn">Risk MED</span>
       <span class="badge sev-good">Confidence HIGH</span>
       <span class="badge">Effort M</span>
@@ -173,3 +174,5 @@ Use this by default for every completed technical debt audit. Markdown is an exp
   </ul>
 </article>
 ```
+
+Include the Origin badge only for branch audits; omit it otherwise.

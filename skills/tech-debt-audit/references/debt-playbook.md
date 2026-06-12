@@ -90,6 +90,7 @@ Every candidate finding should fit this shape before it reaches the report:
 - **Fix risk**: LOW / MED / HIGH, with why
 - **Confidence**: HIGH / MED / LOW, based on direct evidence quality
 - **Owner/scope**: package, subsystem, or team-sized area if inferable
+- **Origin** (branch audits only): introduced / amplified / pre-existing relative to the merge base
 ```
 
 ## Evidence Rules
