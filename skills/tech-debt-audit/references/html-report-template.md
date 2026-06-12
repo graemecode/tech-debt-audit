@@ -13,6 +13,7 @@ Use this by default for every completed technical debt audit. Markdown is an exp
 - Do not include secret values, customer data, exploit strings, or long source excerpts.
 - Escape all interpolated text for HTML.
 - Keep all CSS inline. Use external CDN scripts only if the report needs diagrams and the user is online; the default report should work offline.
+- Badge severity classes encode color, not label text: `sev-bad` (red) for Risk HIGH or Confidence LOW, `sev-warn` (amber) for MED, `sev-good` (green) for Risk LOW or Confidence HIGH.
 
 ## Page Structure
 
@@ -60,7 +61,7 @@ Use this by default for every completed technical debt audit. Markdown is an exp
       background: var(--panel);
       border-radius: 8px;
     }
-    .meta { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin-top: 18px; }
+    .meta { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; margin-top: 18px; }
     .meta div { padding: 14px 16px; border-right: 1px solid var(--line); }
     .meta div:last-child { border-right: 0; }
     .label { display: block; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
@@ -78,9 +79,9 @@ Use this by default for every completed technical debt audit. Markdown is an exp
     .finding-head { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
     .badges { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
     .badge { display: inline-flex; padding: 3px 8px; border: 1px solid var(--line); border-radius: 999px; font-size: 12px; white-space: nowrap; background: #fafafa; }
-    .high { color: var(--risk-high); border-color: #f2b8b5; }
-    .med { color: var(--risk-med); border-color: #fed7aa; }
-    .low { color: var(--risk-low); border-color: #b7e4c7; }
+    .sev-bad { color: var(--risk-high); border-color: #f2b8b5; }
+    .sev-warn { color: var(--risk-med); border-color: #fed7aa; }
+    .sev-good { color: var(--risk-low); border-color: #b7e4c7; }
     .evidence { margin: 10px 0 0; padding-left: 18px; }
     .note { padding: 14px 16px; color: var(--muted); }
     @media (max-width: 760px) {
@@ -103,6 +104,7 @@ Use this by default for every completed technical debt audit. Markdown is an exp
       <div><span class="label">Commit</span><code>COMMIT_SHA</code></div>
       <div><span class="label">Effort</span>EFFORT_LEVEL</div>
       <div><span class="label">Scope</span>SCOPE</div>
+      <div><span class="label">Prior audit</span>PRIOR_AUDIT</div>
     </section>
   </header>
   <main>
@@ -115,6 +117,12 @@ Use this by default for every completed technical debt audit. Markdown is an exp
       <div class="metric"><span class="label">Actionable Findings</span><strong>ACTIONABLE_COUNT</strong></div>
       <div class="metric"><span class="label">High Confidence</span><strong>HIGH_CONFIDENCE_COUNT</strong></div>
       <div class="metric"><span class="label">Investigate Later</span><strong>INVESTIGATE_COUNT</strong></div>
+    </section>
+
+    <h2>Coverage &amp; Verification</h2>
+    <section class="note">
+      <p><strong>Not audited:</strong> NOT_AUDITED_HTML</p>
+      <p><strong>Verification commands discovered:</strong> VERIFICATION_COMMANDS_HTML</p>
     </section>
 
     <h2>Recommended Paydown Sequence</h2>
@@ -151,8 +159,8 @@ Use this by default for every completed technical debt audit. Markdown is an exp
     <h3>DEBT-01: Title</h3>
     <div class="badges">
       <span class="badge">Category</span>
-      <span class="badge med">Risk MED</span>
-      <span class="badge low">Confidence HIGH</span>
+      <span class="badge sev-warn">Risk MED</span>
+      <span class="badge sev-good">Confidence HIGH</span>
       <span class="badge">Effort M</span>
     </div>
   </div>
