@@ -23,22 +23,36 @@ if (plugin) {
     if (typeof plugin[field] === "string" && plugin[field].trim()) ok(`plugin.json has ${field}`);
     else fail(`plugin.json missing or empty: ${field}`);
   }
-  const skillDir = join(ROOT, "skills", plugin.name);
-  if (existsSync(skillDir)) ok(`skills/${plugin.name}/ exists`);
-  else fail(`no skills/${plugin.name}/ directory matching plugin name`);
 }
 
-// --- 2. SKILL.md frontmatter ---
+// --- 2. SKILL.md frontmatter (skills live at skills/<category>/<name>/SKILL.md) ---
 function parseFrontmatter(text) {
   const m = text.match(/^---\n([\s\S]*?)\n---/);
   return m ? m[1] : null;
 }
-for (const entry of readdirSync(join(ROOT, "skills"))) {
-  const skillFile = join(ROOT, "skills", entry, "SKILL.md");
-  if (!existsSync(skillFile)) { fail(`skills/${entry}/ has no SKILL.md`); continue; }
+function findSkillFiles(dir) {
+  const out = [];
+  for (const name of readdirSync(dir)) {
+    const p = join(dir, name);
+    if (statSync(p).isDirectory()) out.push(...findSkillFiles(p));
+    else if (name === "SKILL.md") out.push(p);
+  }
+  return out;
+}
+const skillFiles = findSkillFiles(join(ROOT, "skills"));
+if (skillFiles.length) ok(`found ${skillFiles.length} skill(s) under skills/`);
+else fail("no SKILL.md found under skills/");
+if (plugin) {
+  if (skillFiles.some((f) => dirname(f).endsWith(`/${plugin.name}`)))
+    ok(`a skill directory matches plugin name (${plugin.name})`);
+  else fail(`no skill directory matching plugin name "${plugin.name}"`);
+}
+for (const skillFile of skillFiles) {
+  const entry = dirname(skillFile).split("/").pop();
+  const rel = skillFile.slice(ROOT.length + 1);
   const fm = parseFrontmatter(readFileSync(skillFile, "utf8"));
-  if (!fm) { fail(`skills/${entry}/SKILL.md has no frontmatter`); continue; }
-  ok(`skills/${entry}/SKILL.md has frontmatter`);
+  if (!fm) { fail(`${rel} has no frontmatter`); continue; }
+  ok(`${rel} has frontmatter`);
   const name = fm.match(/^name:\s*(.+)$/m)?.[1]?.trim();
   if (name === entry) ok(`SKILL.md name matches directory (${entry})`);
   else fail(`SKILL.md name "${name}" != directory "${entry}"`);

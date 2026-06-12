@@ -4,7 +4,7 @@ description: Audit any repository for evidence-backed technical debt and produce
 license: MIT
 metadata:
   author: Graeme
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Tech Debt Audit

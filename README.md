@@ -1,5 +1,7 @@
 # tech-debt-audit
 
+[![skills.sh](https://skills.sh/b/graemecode/tech-debt-audit)](https://skills.sh/graemecode/tech-debt-audit)
+
 An agent skill that audits any codebase for technical debt, writes a readable HTML report, and opens it in your browser.
 
 The idea: use a capable model for the part where judgment matters: understanding the repo, separating real debt from taste, ranking payoff, and writing a report that a human or another agent can act on. The skill never fixes code itself. The browser-opened report is the product.
@@ -13,7 +15,7 @@ agent/human  ->  pays down selected slices    (separate implementation work)
 ## Install
 
 ```bash
-npx skills add graemecode/tech-debt-audit
+npx skills@latest add graemecode/tech-debt-audit
 ```
 
 Works in any agent that supports the [Agent Skills](https://agentskills.io) format. The default output is a self-contained HTML report; Markdown is available when explicitly requested.
