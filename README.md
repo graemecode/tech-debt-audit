@@ -1,12 +1,12 @@
 # tech-debt-audit
 
-An agent skill that audits any codebase for technical debt and produces evidence-backed reports.
+An agent skill that audits any codebase for technical debt, writes a readable HTML report, and opens it in your browser.
 
-The idea: use a capable model for the part where judgment matters: understanding the repo, separating real debt from taste, ranking payoff, and writing a report that a human or another agent can act on. The skill never fixes code itself. The report is the product.
+The idea: use a capable model for the part where judgment matters: understanding the repo, separating real debt from taste, ranking payoff, and writing a report that a human or another agent can act on. The skill never fixes code itself. The browser-opened report is the product.
 
 ```
 you          ->  /tech-debt-audit             (asks for an audit)
-report       ->  prioritized debt ledger      (evidence, payoff, risk)
+browser      ->  readable HTML report         (evidence, payoff, risk)
 agent/human  ->  pays down selected slices    (separate implementation work)
 ```
 
@@ -16,7 +16,7 @@ agent/human  ->  pays down selected slices    (separate implementation work)
 npx skills add graemecode/tech-debt-audit
 ```
 
-Works in any agent that supports the [Agent Skills](https://agentskills.io) format. Reports are plain Markdown or self-contained HTML, so any agent or human can pick them up.
+Works in any agent that supports the [Agent Skills](https://agentskills.io) format. The default output is a self-contained HTML report; Markdown is available when explicitly requested.
 
 ## Usage
 
@@ -25,7 +25,7 @@ Works in any agent that supports the [Agent Skills](https://agentskills.io) form
 /tech-debt-audit quick                   cheap pass: hotspots, top findings only
 /tech-debt-audit deep                    broader pass across the repo
 /tech-debt-audit branch                  audit what the current branch changes
-/tech-debt-audit html                    write and open a visual HTML report
+/tech-debt-audit markdown                produce Markdown instead of HTML
 /tech-debt-audit packages/api apps/web   focus specific directories
 ```
 
@@ -35,17 +35,17 @@ A typical first run:
 
 1. Open your agent in the repo and run `/tech-debt-audit`.
 2. It maps the repo, reads local docs and conventions, then audits for debt.
-3. It returns a ranked ledger with `file:line` evidence, impact, effort, risk, and confidence.
+3. It writes a self-contained HTML report and opens it in your browser.
 4. Pick the findings you want to pay down and hand them to any agent or human as implementation work.
 5. Run it again after major migrations or before planning a cleanup cycle.
 
-For a visual artifact, ask for HTML:
+For a Markdown artifact instead, ask for Markdown:
 
 ```
-/tech-debt-audit html
+/tech-debt-audit markdown
 ```
 
-The skill writes a self-contained report and opens it in the browser when the host environment supports that.
+When browser opening is unavailable, the skill still writes the HTML report and gives you the path.
 
 ## Example
 
@@ -66,7 +66,7 @@ And reject weaker candidates so they do not come back next run:
 - two similar test fixtures: intentional duplication for isolation.
 ```
 
-See [examples/001-sample-report.md](./examples/001-sample-report.md) for the report shape.
+See [examples/001-sample-report.md](./examples/001-sample-report.md) for the report content shape.
 
 ## How it works
 
@@ -78,7 +78,7 @@ See [examples/001-sample-report.md](./examples/001-sample-report.md) for the rep
 
 **Prioritize.** Ranks by leverage: current cost and risk reduced, divided by effort and fix risk, discounted by confidence.
 
-**Report.** Produces a Markdown or HTML report with a paydown sequence, debt ledger, detailed findings, rejected candidates, and suggested verification gates.
+**Report.** Produces and opens an HTML report with a paydown sequence, debt ledger, detailed findings, rejected candidates, and suggested verification gates. Markdown is available on request.
 
 ## What makes the report useful
 

@@ -1,6 +1,6 @@
 # HTML Technical Debt Report
 
-Use this when the user asks for an HTML, visual, browser, or opened technical debt report.
+Use this by default for every completed technical debt audit. Markdown is an explicit opt-in or fallback; the normal deliverable is a self-contained HTML file opened in a browser.
 
 ## Output Rules
 
@@ -8,6 +8,8 @@ Use this when the user asks for an HTML, visual, browser, or opened technical de
 - Default location: OS temp directory from `$TMPDIR`, then `/tmp` on macOS/Linux, or `%TEMP%` on Windows.
 - File name: `tech-debt-report-<repo-slug>-<YYYYMMDD-HHMMSS>.html`.
 - Open the file for the user after writing it. Use the host's preferred browser/open tool when available; otherwise use `open <path>` on macOS, `xdg-open <path>` on Linux, or `start <path>` on Windows.
+- Do not wait for the user to ask for HTML; the HTML file is the default final artifact.
+- If the browser open step fails, keep the HTML file, report the absolute path, and summarize the failure without dropping back to a Markdown-only report.
 - Do not include secret values, customer data, exploit strings, or long source excerpts.
 - Escape all interpolated text for HTML.
 - Keep all CSS inline. Use external CDN scripts only if the report needs diagrams and the user is online; the default report should work offline.

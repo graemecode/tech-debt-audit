@@ -1,6 +1,6 @@
-# Technical Debt Report Template
+# Technical Debt Report Content Checklist
 
-Use this structure for the final response or Markdown report file. Keep it concise, but do not remove evidence.
+Use this structure as the content checklist for both HTML and Markdown reports. HTML is the default output; Markdown is for explicit Markdown requests or fallback situations. Keep it concise, but do not remove evidence.
 
 ```markdown
 # Technical Debt Report: <repo/package/scope>
