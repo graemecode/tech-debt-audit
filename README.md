@@ -27,6 +27,7 @@ Works in any agent that supports the [Agent Skills](https://agentskills.io) form
 /tech-debt-audit branch                  audit what the current branch changes
 /tech-debt-audit markdown                produce Markdown instead of HTML
 /tech-debt-audit packages/api apps/web   focus specific directories
+/tech-debt-audit quests                  also write a machine-readable ledger (.tech-debt/ledger.json)
 ```
 
 ## How to use

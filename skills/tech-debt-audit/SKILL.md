@@ -33,6 +33,8 @@ Infer effort from the prompt: `quick`, `standard` (default), or `deep`.
 
 For `branch`, audit changed files since the merge base plus direct callers/importers. Tag each finding as `introduced`, `amplified`, or `pre-existing`.
 
+For `quests`, run the normal audit and additionally write the machine-readable quest ledger described in [references/quest-ledger.md](references/quest-ledger.md) to `.tech-debt/ledger.json` in the repo root. The `quests` keyword is the explicit request for an in-repo artifact that Hard Rule 1 requires; never write the ledger without it. `quests` composes with effort keywords, scope paths, and `branch`. In headless environments (CI), a failed browser-open step is expected; the ledger is the artifact that matters.
+
 Treat any other arguments as scope paths, relative to the repo root:
 
 - Audit only the named files/directories plus their direct importers and callers; everything else is out of scope and must be listed under "Not audited" in the report.
@@ -84,6 +86,8 @@ Default output:
 - Open the HTML file automatically for the user once the report is complete.
 - If opening fails, keep the HTML file and report the absolute path plus the open error in plain language.
 - In the final response, do not paste the full report. Provide the path and a concise summary of the top findings.
+
+In `quests` mode, also write `.tech-debt/ledger.json` per [references/quest-ledger.md](references/quest-ledger.md) before opening the report.
 
 If the user explicitly asks for Markdown, write to an existing reports/docs convention if obvious; otherwise use `reports/tech-debt/tech-debt-report-<YYYY-MM-DD>.md`. If they ask for both Markdown and HTML, still open the HTML report automatically.
 
