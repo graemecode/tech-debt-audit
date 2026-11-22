@@ -1,27 +1,34 @@
-# Quest Ledger (quests mode)
+# Quest Ledger (`quests` mode)
 
-In `quests` mode, after vetting and prioritizing, additionally write a machine-readable ledger to `.tech-debt/ledger.json` in the repo root. The ledger is a stable contract for downstream tooling — issue-sync bots, paydown trackers, or gamified quest layers — that turns findings into work items and verifies paydown. Two rules shape everything here:
+In `quests` mode, `scripts/render-report.mjs --quests` writes a machine-readable ledger to `.tech-debt/ledger.json` in the repo root. The ledger is a stable contract for downstream tooling — issue-sync bots, paydown trackers, or gamified quest layers — that turns findings into work items and verifies paydown.
 
-- **Emit facts, never scores.** Points, rewards, and rankings are computed by whatever consumes the ledger; they never appear in it. This keeps the audit un-gameable.
-- **The `quests` keyword is the explicit request for an in-repo artifact** that Hard Rule 1 requires. Without it, never write into the audited repo.
+Two rules shape everything here:
 
-## Writing the ledger
+- **Emit facts, never scores.** Points, rewards, and rankings are computed by downstream consumers; they never appear in the ledger.
+- **`quests` is the explicit opt-in for an in-repo artifact** required by Hard Rule 1. Without `--quests`, never write `.tech-debt/ledger.json`.
 
-- Read the existing `.tech-debt/ledger.json` first if present. Reuse `id` values for findings whose evidence overlaps a prior entry; assign the next free `DEBT-NN` to new findings. Never recycle an id.
-- Carry rejected candidates and investigate-later items into the ledger (in quests mode the ledger is the shared memory; still maintain the cache memo per "Persist Audit Memory").
-- Findings without a machine-checkable verification gate get `"gate": null` — they are real debt but downstream tooling should skip them for anything score-like.
-- JSON only, UTF-8, two-space indent. Never include secret values in `note` fields.
+## Lifecycle & ID Stability
 
-## Shape (`schema_version: 1`)
+Handled automatically by `scripts/render-report.mjs --quests`:
+
+- Reads existing `.tech-debt/ledger.json` before writing.
+- Reuses `id` values for findings matching a prior entry (by `path::symbol` anchor or path + title overlap); assigns the next unused `DEBT-NN` to new findings. Never recycles an ID.
+- On `scoped` or `branch` runs, preserves prior open entries outside the audited scope untouched (only marks in-scope missing entries as `expired`).
+- Carries `rejected` and `investigate` entries into the ledger while keeping the out-of-repo cache memo synced.
+- `scripts/memory.mjs reject` also updates matching entries in `.tech-debt/ledger.json` (`status: "rejected"`) when the file already exists.
+- Findings without a machine-checkable gate get `"gate": null`.
+- `generated_by` reads `metadata.version` directly from `SKILL.md` (no runtime dependency on `.claude-plugin/plugin.json`).
+
+## Shape (`schema_version: 1`, backward-compatible)
 
 ```json
 {
   "schema_version": 1,
-  "generated_by": "tech-debt-audit@<version from plugin.json>",
+  "generated_by": "tech-debt-audit@<version from SKILL.md>",
   "repo": "<origin URL, or absolute path when there is no remote>",
   "audit": {
     "date": "<YYYY-MM-DD>",
-    "commit": "<short SHA, or \"working-tree\">",
+    "commit": "<short SHA, or \"working tree (no git)\">",
     "effort": "quick|standard|deep",
     "scope": "<mirrors the report's Scope inspected line>",
     "not_audited": "<important exclusions>"
@@ -31,16 +38,22 @@ In `quests` mode, after vetting and prioritizing, additionally write a machine-r
       "id": "DEBT-01",
       "title": "<imperative title>",
       "category": "<debt-playbook category>",
-      "origin": "introduced|amplified|pre-existing|null  (branch audits only; null otherwise)",
-      "evidence": [{ "path": "src/file.ts", "line": 42, "note": "<what is there now>" }],
+      "origin": "introduced|amplified|pre-existing|null",
+      "evidence": [
+        { "path": "src/file.ts", "line": 42, "symbol": "fnName", "note": "<what is there now>" }
+      ],
       "current_cost": "<what maintainers pay today>",
+      "interest_rate": "HIGH|MED|LOW",
+      "interest_rate_reason": "<churn/defect/co-change evidence>",
       "payoff": "<what improves if paid down>",
+      "falsification": "<what was checked to disprove it>",
       "slice": "<smallest coherent paydown step>",
-      "gate": { "command": "<command>", "expected": "<machine-checkable result>" },
+      "gate": { "command": "<command>", "expected": "<machine-checkable result>", "status": "observed|proposed" },
       "effort": "S|M|L",
       "fix_risk": "LOW|MED|HIGH",
+      "blast_radius": "local|package|cross-package|external",
       "confidence": "HIGH|MED|LOW",
-      "status": "open|rejected|expired  (downstream tooling owns claimed/verifying/verified)",
+      "status": "open|rejected|expired",
       "owner_scope": "<area if inferable>"
     }
   ],
@@ -49,4 +62,4 @@ In `quests` mode, after vetting and prioritizing, additionally write a machine-r
 }
 ```
 
-This file is the canonical, self-contained definition of the shape. Downstream consumers should validate against it and treat `schema_version` as the compatibility key; bump it only on breaking changes.
+Downstream tooling owns workflow statuses beyond `open|rejected|expired` (e.g. `claimed`, `verifying`, `verified`) — `render-report.mjs` preserves non-`open` downstream statuses across re-runs.

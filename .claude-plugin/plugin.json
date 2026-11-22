@@ -1,12 +1,12 @@
 {
   "name": "tech-debt-audit",
-  "description": "Audit any codebase for evidence-backed technical debt and open a prioritized HTML report in the browser.",
-  "version": "1.1.0",
+  "description": "Audit any codebase for evidence-backed, falsification-vetted technical debt using quantitative git/code recon and a deterministic interactive HTML report opened in your browser.",
+  "version": "2.0.0",
   "author": {
     "name": "Graeme"
   },
   "homepage": "https://github.com/graemecode/tech-debt-audit",
   "repository": "https://github.com/graemecode/tech-debt-audit",
   "license": "MIT",
-  "keywords": ["audit", "code-review", "agents", "tech-debt", "architecture", "maintainability"]
+  "keywords": ["audit", "code-review", "agents", "tech-debt", "architecture", "maintainability", "gemini"]
 }

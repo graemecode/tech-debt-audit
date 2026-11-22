@@ -1,0 +1,143 @@
+{
+  "schema_version": 2,
+  "audit": {
+    "repo_name": "example-api",
+    "date": "2026-11-22",
+    "commit": "abc1234",
+    "effort": "quick",
+    "mode": "scoped",
+    "scope": "src/routes, src/auth, scripts",
+    "effective_paths": ["src/routes", "src/auth", "scripts"],
+    "not_audited": "frontend app, deployment configuration",
+    "verification_commands": [
+      { "command": "npm test -- auth", "status": "observed: 14 passed" },
+      { "command": "npx tsc --noEmit", "status": "observed: 0 errors" }
+    ]
+  },
+  "executive_summary": [
+    "Highest leverage: consolidate account authorization checks duplicated across 3 high-churn route handlers with diverging edge cases.",
+    "Smallest safe first step: add characterization tests for the 3 routes, then extract a single requireAccountAccess helper without changing HTTP semantics.",
+    "Low-risk tooling win next: expose the checked-in client generator as a package script so reviewers can verify generated diffs mechanically."
+  ],
+  "findings": [
+    {
+      "id": "DEBT-01",
+      "title": "Centralize repeated account authorization",
+      "category": "Boundaries and Ownership",
+      "owner_scope": "API routes & auth boundary",
+      "origin": null,
+      "evidence": [
+        {
+          "path": "src/routes/accounts.ts",
+          "line": 42,
+          "symbol": "getAccountHandler",
+          "note": "Route-local account ownership check."
+        },
+        {
+          "path": "src/routes/billing.ts",
+          "line": 31,
+          "symbol": "updateBillingHandler",
+          "note": "Similar ownership check returning 404 instead of 403 on mismatch."
+        },
+        {
+          "path": "src/routes/invites.ts",
+          "line": 58,
+          "symbol": "createInviteHandler",
+          "note": "Third copy with an extra role branch omitted from accounts.ts."
+        }
+      ],
+      "current_cost": "Security-sensitive authorization rules must be patched across 3 route files, and error/admin edge cases have already diverged.",
+      "interest_rate": "HIGH",
+      "interest_rate_reason": "Touched in 11 commits (4 fix commits) over 6 months; accounts.ts and billing.ts co-changed in 5 commits.",
+      "payoff": "One trusted auth boundary prevents repeated permission bugs and makes new routes safe by default.",
+      "falsification": "Checked auth middleware, route callers, and git log -n 5 across all 3 files; no ADR documents intentional status-code divergence.",
+      "slice": "Add characterization tests locking current responses for all 3 routes, then extract requireAccountAccess without altering status codes.",
+      "why_this_order": "Highest interest rate on a security-critical boundary with a clean bounded first slice.",
+      "gate": {
+        "command": "npm test -- auth",
+        "expected": "all existing and new route characterization tests pass",
+        "status": "observed",
+        "observed_result": "14 passed in 1.1s before changes"
+      },
+      "effort": "M",
+      "fix_risk": "MED",
+      "fix_risk_reason": "Live route HTTP error status semantics must stay backward-compatible for clients.",
+      "blast_radius": "package",
+      "confidence": "HIGH",
+      "confidence_reason": "Verified all 3 route handlers directly and ran the existing auth suite."
+    },
+    {
+      "id": "DEBT-02",
+      "title": "Document and wire generated client regeneration",
+      "category": "Tooling, CI, and Developer Workflow Debt",
+      "owner_scope": "API tooling",
+      "origin": null,
+      "evidence": [
+        {
+          "path": "scripts/generate-client.ts",
+          "line": 1,
+          "symbol": "(module)",
+          "note": "Generator exists in scripts/."
+        },
+        {
+          "path": "src/generated/client.ts",
+          "line": 1,
+          "symbol": "(module)",
+          "note": "Generated output is checked into git."
+        },
+        {
+          "path": "package.json",
+          "line": 12,
+          "symbol": "scripts",
+          "note": "No script exposes the generator or verifies cleanliness in CI."
+        }
+      ],
+      "current_cost": "Reviewers cannot reproduce generated client diffs or verify that checked-in client code matches the schema.",
+      "interest_rate": "MED",
+      "interest_rate_reason": "src/generated/client.ts changed in 6 API PRs over the last quarter with manual regeneration notes.",
+      "payoff": "Regeneration becomes a one-command check that CI can enforce automatically.",
+      "falsification": "Checked package.json, Makefile, and .github/workflows; no hidden CI step invokes scripts/generate-client.ts.",
+      "slice": "Add a generate:client script in package.json, document it in README, and verify git diff --exit-code.",
+      "why_this_order": "Small, low-risk tooling fix that eliminates recurring PR review friction.",
+      "gate": {
+        "command": "npm run generate:client && git diff --exit-code",
+        "expected": "exits 0 with no unstaged diff against checked-in client",
+        "status": "proposed"
+      },
+      "effort": "S",
+      "fix_risk": "LOW",
+      "fix_risk_reason": "Package script wiring and docs only; no runtime behavior change.",
+      "blast_radius": "local",
+      "confidence": "HIGH",
+      "confidence_reason": "Generator, checked-in output, and package.json were all verified directly."
+    }
+  ],
+  "investigate": [
+    {
+      "candidate": "Test fixture drift",
+      "signal": "Similar fixture factories exist in two route test directories.",
+      "proof_needed": "Compare recent test failure history and fixture edit co-changes."
+    }
+  ],
+  "rejected": [
+    {
+      "title": "src/generated/client.ts size",
+      "reason": "Large file, but generated output rather than hand-maintained debt.",
+      "evidence": "src/generated/client.ts:1"
+    }
+  ],
+  "revived_rejections": [],
+  "implementer_notes": [
+    "Start with characterization tests for current authorization behavior before extracting helpers.",
+    "Keep generated-file script wiring in a separate commit from route behavior changes."
+  ],
+  "recon_summary": {
+    "hotspots": [
+      { "path": "src/routes/accounts.ts", "commits": 11, "fix_commits": 4, "revert_commits": 0, "loc": 240 },
+      { "path": "src/routes/billing.ts", "commits": 9, "fix_commits": 3, "revert_commits": 0, "loc": 195 }
+    ],
+    "co_change_pairs": [
+      { "file_a": "src/routes/accounts.ts", "file_b": "src/routes/billing.ts", "co_commits": 5, "coupling_ratio": 0.45 }
+    ]
+  }
+}

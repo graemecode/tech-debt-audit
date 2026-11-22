@@ -1,58 +1,58 @@
-# Technical Debt Report Content Checklist
+# Technical Debt Report Content Checklist (Markdown Fallback)
 
-Use this structure as the content checklist for both HTML and Markdown reports. HTML is the default output; Markdown is for explicit Markdown requests or fallback situations. Keep it concise, but do not remove evidence.
+By default, generate reports deterministically via `scripts/render-report.mjs` using [audit-schema.md](audit-schema.md) (`--format html`, `--format markdown`, or `--format both`).
+
+Use this template directly **only** as a fallback when Node script execution is unavailable in the host environment. Default Markdown output still goes to the OS temp directory unless the user explicitly requests an in-repo file.
 
 ```markdown
-# Technical Debt Report: <repo/package/scope>
+# Technical Debt Report: <repo>
 
 ## Scope
 
-- **Audited at**: <date> on commit `<sha>` (or "working tree, SHA unavailable")
-- **Effort level**: quick | standard | deep
+- **Audited at**: <YYYY-MM-DD> on commit `<sha>`
+- **Effort level**: quick | standard | deep (full | branch | scoped)
 - **Scope inspected**: <packages, directories, branch changes, or whole repo>
 - **Not audited**: <important exclusions>
-- **Verification commands discovered**: `<command>` -> <known status or "not run">
+- **Verification commands discovered**: `<command>` -> <observed status or "not run">
 - **Prior audit**: <date and commit from audit memory, with N rejected candidates honored; or "none found">
+- **Delta vs prior audit**: <R resolved, N new, P persisted; omit on first run>
 
 ## Executive Summary
 
-<3-6 bullets. State the highest-leverage debt, why it matters, and the recommended paydown order. Do not bury uncertainty.>
+- <3-6 bullets. Highest-leverage debt, why it matters, recommended order, honest uncertainty.>
 
 ## Recommended Paydown Sequence
 
-| Order | Finding | Why first | Effort | Risk | Verification gate |
-|-------|---------|-----------|--------|------|-------------------|
-| 1 | DEBT-01 | <reason> | S/M/L | LOW/MED/HIGH | `<command>` |
+| Order | Finding | Why first | Interest | Effort | Risk | Verification gate |
+|-------|---------|-----------|----------|--------|------|-------------------|
+| 1 | DEBT-01: <title> | <reason> | HIGH/MED/LOW | S/M/L | LOW/MED/HIGH | `<command>` (observed/proposed) |
 
 ## Debt Ledger
 
-| ID | Finding | Category | Current cost | Payoff | Effort | Risk | Confidence | Evidence |
-|----|---------|----------|--------------|--------|--------|------|------------|----------|
-| DEBT-01 | <short title> | <category> | <cost> | <payoff> | S/M/L | LOW/MED/HIGH | HIGH/MED/LOW | `file:line` |
-
-For branch audits, append the origin tag to the Finding cell, e.g. "Centralize auth checks (introduced)". Order introduced findings before pre-existing ones.
+| ID | Finding | Category | Owner/Scope | Interest | Effort | Risk | Confidence | Evidence |
+|----|---------|----------|-------------|----------|--------|------|------------|----------|
+| DEBT-01 | <short title> | <category> | <owner/scope> | HIGH/MED/LOW | S/M/L | LOW/MED/HIGH | HIGH/MED/LOW | `file:line` |
 
 ## Findings
 
 ### DEBT-01: <imperative title>
 
 - **Category**: <category>
+- **Owner/scope**: <area> (blast radius: `local|package|cross-package|external`)
+- **Origin** (branch audits only): introduced | amplified | pre-existing
 - **Evidence**:
-  - `path/file.ext:line` - <what is there>
-  - `path/other.ext:line` - <what is there>
+  - `path/file.ext:line` (`symbol`) - <what is there>
 - **Current cost**: <specific maintenance cost or production risk>
+- **Interest rate**: HIGH/MED/LOW - <churn/defect/co-change rationale>
 - **Payoff**: <what improves if addressed>
+- **Falsification check**: <what was checked to disprove it>
 - **Suggested slice**: <smallest coherent paydown step>
-- **Verification gate**: `<command>` should <expected result>
+- **Verification gate** (observed/proposed): `<command>` should <expected result>
 - **Effort**: S/M/L
 - **Fix risk**: LOW/MED/HIGH - <why>
 - **Confidence**: HIGH/MED/LOW - <why>
-- **Owner/scope**: <area if inferable>
-- **Origin** (branch audits only): introduced | amplified | pre-existing
 
 ## Investigate Later
-
-Findings with suggestive but incomplete evidence. Do not mix these with actionable debt.
 
 | Candidate | Signal | What would prove it |
 |-----------|--------|---------------------|
@@ -60,20 +60,9 @@ Findings with suggestive but incomplete evidence. Do not mix these with actionab
 
 ## Considered and Rejected
 
-- `<candidate>`: not debt because <reason>.
+- `<candidate>`: <reason> (`<evidence>`)
 
 ## Notes for Implementers
 
-- Suggested branch/order constraints, prerequisite tests, risky boundaries, and commands future implementers should run.
-- Mention when a full implementation plan should be written before coding.
+- <order constraints, prerequisite tests, risky boundaries>
 ```
-
-## Report Quality Checklist
-
-- Every actionable finding has `file:line` evidence.
-- Findings are ranked by payoff, not discovery order.
-- The report names what was not audited.
-- Rejected items explain why they should not come back next run.
-- No secret values, customer data, or runnable misuse steps are included.
-- Suggested slices are small enough to review, but not so small that they preserve the debt.
-- The report states whether prior audit memory was found and honored.

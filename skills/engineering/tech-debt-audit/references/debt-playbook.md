@@ -1,141 +1,135 @@
 # Debt Playbook
 
-Use this playbook to find technical debt with evidence. Debt is a current cost or risk caused by a design, implementation, tooling, or process choice. A smell is not debt until you can show the cost, risk, or repeated maintenance friction.
+Use this playbook to find technical debt with empirical evidence. Debt is a **current or compounding cost/risk** caused by a design, implementation, tooling, or process choice. A smell is not debt until you can prove its cost, interest rate, and a bounded paydown slice.
 
 ## Category Probes
 
 ### 1. Boundaries and Ownership
 
 - Product, domain, UI, persistence, infrastructure, or transport concerns imported across layers with no stable API between them.
-- Circular dependencies, broad barrel files, or modules that require callers to know implementation details.
+- Cross-directory co-change pairs (`recon.mjs -> signals.co_change_pairs`) where edits in one module routinely force lockstep edits in an unrelated module.
+- Circular dependencies, broad barrel files hurting bundle/query graphs, or modules requiring callers to know internal state.
 - Runtime ownership split across multiple packages/services without a documented source of truth.
-- A concept named differently across layers, forcing maintainers to translate mentally.
 
 ### 2. Duplication and Drift
 
-- Same validation, mapping, authorization, styling, query, serialization, or business rule repeated in 3+ places.
-- Similar files that have diverged in edge cases or error handling.
-- Generated or copied code checked in without regeneration instructions.
-- Tests duplicated around implementation details rather than shared behavior.
+- Same validation, mapping, authorization, query, serialization, or business rule repeated in 3+ places — especially when edge cases or error handling have already diverged.
+- Generated or copied code checked in without a documented, reproducible regeneration command.
+- Tests duplicated around internal implementation details rather than shared behavioral contracts.
 
 ### 3. Module Shape and Abstraction Fit
 
-- God files/classes: much larger than peer files, high fan-in/fan-out, many unrelated reasons to change.
-- Shallow wrappers: abstractions whose interface is nearly as complex as direct use.
-- Missing abstraction: the same change regularly requires edits in several files in lockstep.
-- Deep conditional logic or long parameter lists representing hidden domain objects or state machines.
+- God files/classes: far larger than peer files, high fan-in/fan-out, high churn across unrelated features.
+- Shallow wrappers whose interface is nearly as complex as direct use.
+- Missing abstraction: the same feature change repeatedly edits 4+ files in lockstep.
+- Deep conditional trees or long parameter lists hiding an explicit domain object or state machine.
 
 ### 4. State, Data Model, and Contract Drift
 
-- Multiple sources of truth for the same state.
-- Schema validators, API contracts, fixtures, and client types disagree.
-- Compatibility branches for migrations that appear complete but were never narrowed.
-- Status flags or booleans that allow impossible state combinations.
+- Multiple sources of truth for the same state (client cache, URL, DB, derived flags disagreeing).
+- Schema validators, API contracts, fixtures, and generated types out of sync.
+- Compatibility branches for migrations that appear complete (or have no owner/expiry/telemetry) and were never narrowed.
+- Boolean flag combinations that permit impossible states instead of discriminated unions / state machines.
 
 ### 5. Type and Safety Escape Hatches
 
-- Clusters of `any`, unchecked casts, force unwraps, `@ts-ignore`, broad exception swallowing, or stringly typed keys on critical paths.
-- Optional/null handling that hides required data instead of enforcing invariants.
+- Clusters of `any`, `as unknown as`, `@ts-ignore`, `@ts-expect-error`, `# type: ignore`, `.unwrap()`, `unsafe {}`, or broad `catch {}` swallowing on critical or high-churn paths.
+- Optional/null handling that silently masks required invariants instead of failing fast at boundaries.
 - Runtime inputs crossing trust boundaries without schema validation.
-- Comments explaining invariants that types or validators could enforce.
+- Comments explaining invariants that the type system or runtime validator could enforce directly.
 
 ### 6. Testability and Feedback Debt
 
-- Critical mutation/auth/money/data paths with no meaningful tests.
-- High-churn modules without characterization tests.
-- Tests coupled to internals, brittle snapshots, excessive mocking, real network/time/filesystem dependencies, or order dependence.
-- No fast one-command verification path for the repo or package.
+- High-churn / high-fix-rate mutation, auth, money, or data-integrity paths with no meaningful tests (`recon.mjs -> signals.test_gap_candidates`).
+- Tests coupled to private internals, brittle snapshots, excessive mocking, or live network/clock/filesystem dependencies.
+- Slow or absent one-command verification path for the repo or package.
 
 ### 7. Dead, Legacy, and Compatibility Debt
 
-- Unused exports, dead routes, stale feature flags, deprecated codepaths, commented-out code, or manifest dependencies no longer imported.
-- Legacy path kept for compatibility without owner, expiry condition, telemetry, or migration evidence.
-- TODO/FIXME/HACK comments that cluster around one abandoned migration or known broken boundary.
+- Unused exports, dead routes, stale feature flags, deprecated codepaths, commented-out code, or unreferenced manifest dependencies.
+- Legacy compatibility paths with no owner, expiry condition, telemetry, or active callers.
+- Clustered TODO/FIXME/HACK comments pointing to an abandoned migration or broken boundary (verify code still matches the comment).
 
 ### 8. Dependency and Migration Debt
 
-- Major runtime/framework/library versions near EOL or blocking ecosystem updates.
-- Duplicate dependencies solving the same problem.
-- Deprecated APIs with announced removal timelines.
+- Runtime/framework/library versions near EOL or blocking security/ecosystem upgrades.
+- Duplicate libraries solving the same problem (e.g., two date libs, two HTTP clients, two schema validators).
 - Monorepo packages pinned inconsistently or lockfile/manifest drift.
-- Migration code missing verify, rollback, or cleanup steps.
+- Schema/data migrations lacking verify, rollback, or cleanup steps.
 
 ### 9. Tooling, CI, and Developer Workflow Debt
 
-- Missing or broken typecheck, lint, formatter, test, build, or CI gates.
-- Slow feedback loops from uncached CI, serial test jobs, or unclear package filters.
-- Onboarding docs missing required env vars, setup steps, or local service assumptions.
-- Agent instructions absent or stale in repos where agents are expected to work.
+- Missing, broken, or bypassed typecheck, lint, test, build, or CI gates.
+- Uncached CI, serial test bottlenecks, or broken workspace filters slowing every PR.
+- Onboarding docs missing required env vars, local services, or reproducible setup steps.
+- Absent or stale `AGENTS.md` / `CLAUDE.md` instructions in repos where coding agents work.
 
 ### 10. Documentation and Decision Debt
 
-- Active architectural decisions that exist only in code comments or tribal knowledge.
-- Docs that contradict the code on setup, APIs, deployment, or ownership.
-- Public APIs, CLIs, packages, or data contracts with no reference surface.
-- ADRs/RFCs that were accepted but implementation materially diverged without an update.
+- Active architectural invariants living only in tribal knowledge or scattered comments.
+- Docs contradicting actual setup, APIs, deployment, or ownership.
+- Public APIs, CLIs, packages, or data contracts lacking a reference surface.
+- Accepted ADRs/RFCs where implementation materially diverged without updating the decision record.
 
-## Finding Format
+## Falsification Checklist (Mandatory Before Inclusion)
 
-Every candidate finding should fit this shape before it reaches the report:
+Before adding any candidate to `findings`, actively try to **disprove** it:
 
-```markdown
-### [DEBT-NN] Imperative title
-
-- **Category**: one of the playbook categories
-- **Evidence**: `path/file.ext:line` - what is there now; repeat for 2-5 strongest locations
-- **Current cost**: what maintainers pay today: bugs, slow changes, risky releases, unclear ownership, slow feedback, duplicated work
-- **Payoff**: what improves if paid down now
-- **Suggested slice**: smallest coherent paydown step; not a full implementation plan
-- **Effort**: S (hours) / M (day-ish) / L (multi-day)
-- **Fix risk**: LOW / MED / HIGH, with why
-- **Confidence**: HIGH / MED / LOW, based on direct evidence quality
-- **Owner/scope**: package, subsystem, or team-sized area if inferable
-- **Origin** (branch audits only): introduced / amplified / pre-existing relative to the merge base
-```
-
-## Evidence Rules
-
-- Cite real `file:line` evidence. Do not report generic smells.
-- Prefer 2-5 strong examples over exhaustive lists; add "and N similar sites" only after measuring or sampling.
-- Use git churn to raise priority, not as standalone proof.
-- Search TODO/FIXME/HACK/legacy/deprecated comments, but verify code still makes the comment true.
-- Treat design docs, ADRs, RFCs, and project vocabulary as evidence. They can turn an apparent smell into a documented tradeoff, or expose drift between plan and reality.
-- Do not copy secrets, private customer data, or exploit payloads into the report.
+1. **Re-read exact code:** Verify the exact `path:line` and capture the enclosing `symbol` name.
+2. **Check all callers & dynamic entry points:** Before calling code dead or unused, check barrel re-exports, dynamic `import()`, string-based router/DI registries, framework file-based routing, config files, and package exports.
+3. **Check git archaeology:** Run `git log -n 5 --oneline -- <file>` (or `git blame -L <start>,<end> <file>`) to check whether the apparent oddity was an intentional hotfix, compatibility shim, or explicit product decision.
+4. **Check docs & prior rejections:** Cross-check `docs_and_intent` and `prior_memory.rejected`.
+5. **Record the falsification check** concisely in the finding's `falsification` field. If you cannot verify it directly, downgrade the item to `investigate`.
 
 ## Rejection Rules
 
 Reject or downgrade a candidate when:
 
-- It is only a preference or style disagreement.
-- The repo has clearly standardized on the pattern and it is not causing measurable friction.
-- The cited code is generated, vendored, test fixture data, or intentionally duplicated for isolation.
-- The problem has no plausible paydown slice smaller than a rewrite.
-- The evidence is suggestive but not enough; move it to "Investigate" instead.
+- It is a style/taste preference with no measurable cost.
+- The repo clearly standardized on the pattern and it is not causing defects or friction.
+- The code is generated, vendored, fixture data, or intentionally duplicated for test/package isolation.
+- Dormant code nobody touches (`LOW` interest rate) unless it carries an active security, compliance, or data-loss risk.
+- There is no coherent paydown slice smaller than a rewrite.
+- Evidence is suggestive but incomplete -> move to `investigate`, never `findings`.
 
-Record important rejected items in the report with a one-line reason.
+## Calibrated Rubrics
 
-## Prioritization Rubric
+### Interest Rate (How fast this debt compounds)
 
-Rank by leverage:
+- **HIGH**: Active hotspot (frequent recent commits, repeated `fix:`/`revert` commits, or cross-directory co-change coupling), active incident/security surface, or blocking imminent roadmap work.
+- **MED**: Moderate touch frequency, recurring onboarding/review friction, or slows CI/test feedback for every developer.
+- **LOW**: Rarely touched module; include only if risk/security/compliance impact justifies action, otherwise reject or move to `investigate`.
 
-1. Debt blocking safe change in critical paths.
-2. Debt causing duplicated fixes, recurrent bugs, or release risk.
-3. Debt that makes verification weak or slow.
-4. Debt with high churn and low test coverage.
-5. Debt whose first paydown slice is small and easy to verify.
+### Effort
 
-Discount for low confidence, high fix risk, unclear ownership, or lack of a credible verification gate. Prefer prerequisite work such as characterization tests or contract consolidation before broad refactors.
+- **S**: Hours (single focused PR, <= ~150 LOC net change, straightforward verification).
+- **M**: ~1-2 days (multi-file refactor or characterization tests + extraction).
+- **L**: Multi-day (cross-package contract change, migration with widen/narrow steps; must still propose a bounded first slice).
 
-## Useful Read-Only Signals
+### Fix Risk & Blast Radius
 
-Adapt commands to the repo and platform:
+- **Fix Risk**: `LOW` (pure local cleanup/tooling, strong tests, easily reversible) | `MED` (live behavior/routes/state touched, requires characterization tests) | `HIGH` (auth, money, persistence schema, or hard-to-reverse contract).
+- **Blast Radius**: `local` (single file/module) | `package` (multiple files in one package) | `cross-package` (multiple packages/services) | `external` (public API, DB schema, wire protocol, or CLI contract).
 
-```bash
-rg --files
-rg -n "TODO|FIXME|HACK|XXX|deprecated|legacy|temporary|workaround|tech debt|cleanup" .
-git log --oneline -30
-git log --name-only --pretty=format: --since="6 months ago" | sort | uniq -c | sort -nr | head -40
-git grep -n "any\\|@ts-ignore\\|eslint-disable\\|as unknown\\|force unwrap" -- ':!node_modules'
-```
+### Prioritization Formula
 
-Language-specific checks are useful only when read-only and cheap: typecheck without emit, lint in check mode, test list/dry-run, dependency audit, unused dependency tools that do not rewrite manifests, and package graph inspection.
+Order findings from highest to lowest leverage:
+
+1. High-interest debt blocking safe change on critical paths.
+2. Debt causing recurrent bugs, reverts, or duplicated fixes across boundaries.
+3. Debt weakening or slowing verification/CI feedback loops.
+4. High-churn modules with low/no test coverage.
+5. Small, low-risk slices that unlock larger paydowns (prerequisites first).
+
+Discount for low confidence, high fix risk, wide blast radius, or lack of an observed verification gate. For `branch` audits, order `introduced` -> `amplified` -> `pre-existing`.
+
+## Read-Only Static Analyzers (Run Only When Already Installed)
+
+Prefer running cheap, read-only checks discovered by `recon.mjs` (never install packages):
+
+- **JS/TS**: `tsc --noEmit`, `knip` (unused files/exports/deps), `madge --circular`, `eslint` / `biome check`, targeted `vitest run <file>` / `jest <file>`.
+- **Python**: `ruff check .`, `mypy` / `pyright`, `vulture` (dead code), `pytest --collect-only` or targeted `pytest <file>`.
+- **Go**: `go vet ./...`, `golangci-lint run`, targeted `go test ./pkg/...`.
+- **Rust**: `cargo check --all-targets`, `cargo clippy --all-targets`.
+
+Tag any finding's verification gate `"status": "observed"` only if you actually executed the command read-only during this audit; otherwise tag `"status": "proposed"`.
