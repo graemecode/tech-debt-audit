@@ -310,17 +310,56 @@ export function matchPriorFinding(finding, priorList) {
   return best;
 }
 
+export const MAX_AUDIT_BYTES = 5 * 1024 * 1024;
+export const MAX_NESTING_DEPTH = 32;
+const VISIBLE_CONTENT = /[^\p{White_Space}\p{Cc}\p{Cf}\p{Default_Ignorable_Code_Point}]/u;
+const FORBIDDEN_CTRL = /[\p{Cf}\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/u;
+
+export function hasVisibleContent(str) {
+  return typeof str === "string" && VISIBLE_CONTENT.test(str);
+}
+
+export function findControlCharIssues(value, pathPrefix = "$", depth = 0) {
+  const issues = [];
+  if (depth > MAX_NESTING_DEPTH) {
+    issues.push(`${pathPrefix}: exceeds max nesting depth (${MAX_NESTING_DEPTH})`);
+    return issues;
+  }
+  if (typeof value === "string") {
+    if (FORBIDDEN_CTRL.test(value)) {
+      issues.push(`${pathPrefix}: contains forbidden control or invisible bidi/format character`);
+    }
+    return issues;
+  }
+  if (Array.isArray(value)) {
+    for (let i = 0; i < value.length; i++) {
+      issues.push(...findControlCharIssues(value[i], `${pathPrefix}[${i}]`, depth + 1));
+    }
+    return issues;
+  }
+  if (value && typeof value === "object") {
+    for (const [k, v] of Object.entries(value)) {
+      issues.push(...findControlCharIssues(v, `${pathPrefix}.${k}`, depth + 1));
+    }
+  }
+  return issues;
+}
+
 export function validateAudit(data, opts = {}) {
   const errors = [];
   const warnings = [];
   const reqStr = (obj, field, prefix) => {
-    if (typeof obj?.[field] !== "string" || !obj[field].trim()) {
-      errors.push(`${prefix}.${field}: required non-empty string`);
+    if (!hasVisibleContent(obj?.[field])) {
+      errors.push(`${prefix}.${field}: required non-empty visible string`);
     }
   };
 
   if (!data || typeof data !== "object") {
     return { valid: false, errors: ["Root value must be a JSON object"], warnings };
+  }
+
+  for (const issue of findControlCharIssues(data)) {
+    errors.push(issue);
   }
 
   if (data.schema_version !== 2) {
@@ -404,6 +443,17 @@ export function validateAudit(data, opts = {}) {
       }
       reqStr(f, "confidence_reason", p);
       reqStr(f, "owner_scope", p);
+
+      if (f.out_of_scope !== undefined) {
+        if (!Array.isArray(f.out_of_scope) || f.out_of_scope.some((x) => !hasVisibleContent(x))) {
+          errors.push(`${p}.out_of_scope: must be an array of non-empty strings when provided`);
+        }
+      }
+      if (f.stop_conditions !== undefined) {
+        if (!Array.isArray(f.stop_conditions) || f.stop_conditions.some((x) => !hasVisibleContent(x))) {
+          errors.push(`${p}.stop_conditions: must be an array of non-empty strings when provided`);
+        }
+      }
 
       if (isBranch) {
         if (!ORIGIN_VALUES.includes(f.origin)) {

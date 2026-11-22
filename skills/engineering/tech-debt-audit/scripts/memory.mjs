@@ -11,6 +11,7 @@ import {
   loadPriorMemo,
   loadQuestLedger,
   matchPriorFinding,
+  tryGit,
 } from "./lib/common.mjs";
 
 export function isInEffectiveScope(anchors, mode, effectivePaths) {
@@ -190,12 +191,108 @@ function parseCliArgs(argv) {
   return { cmd, opts };
 }
 
+function escapeRegex(s) {
+  return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+export function reconcileOpenFindings(identity, memo) {
+  const open = Array.isArray(memo?.open_findings) ? memo.open_findings : [];
+  const currentCommit = identity.isGit ? tryGit(identity.root, ["rev-parse", "--short", "HEAD"]) : null;
+  const lastCommit = memo?.last_audit?.commit || null;
+  const changedSinceAudit = new Set();
+
+  if (identity.isGit && lastCommit && currentCommit && !lastCommit.includes("working tree")) {
+    const diffOut = tryGit(identity.root, ["diff", "--name-only", `${lastCommit}..HEAD`]);
+    if (diffOut) {
+      for (const f of diffOut.split("\n")) {
+        if (f.trim()) changedSinceAudit.add(f.trim());
+      }
+    }
+  }
+
+  const results = open.map((finding) => {
+    const anchors = extractAnchors(finding);
+    const anchorChecks = anchors.map((a) => {
+      const fullPath = resolve(identity.root, a.path);
+      if (!fullPath.startsWith(identity.root) || !existsSync(fullPath)) {
+        return { ...a, status: "file_deleted", current_line: null };
+      }
+      let lines;
+      try {
+        lines = readFileSync(fullPath, "utf8").split("\n");
+      } catch {
+        return { ...a, status: "unreadable", current_line: null };
+      }
+
+      if (!a.symbol || a.symbol === "(module)") {
+        const lineValid = a.line >= 1 && a.line <= lines.length;
+        const status = !lineValid
+          ? "drifted"
+          : changedSinceAudit.has(a.path)
+            ? "drifted"
+            : "intact";
+        return { ...a, status, current_line: lineValid ? a.line : null };
+      }
+
+      const symRe = new RegExp(`\\b${escapeRegex(a.symbol)}\\b`);
+      const matchedLines = [];
+      for (let i = 0; i < lines.length; i++) {
+        if (symRe.test(lines[i])) matchedLines.push(i + 1);
+      }
+      if (!matchedLines.length) {
+        return { ...a, status: "symbol_missing", current_line: null };
+      }
+
+      // Pick occurrence closest to original line
+      matchedLines.sort((x, y) => Math.abs(x - a.line) - Math.abs(y - a.line));
+      const nearest = matchedLines[0];
+      const delta = Math.abs(nearest - a.line);
+      const status = delta > 5 || changedSinceAudit.has(a.path) ? "drifted" : "intact";
+      return { ...a, status, current_line: nearest, line_delta: nearest - a.line };
+    });
+
+    let overall = "intact";
+    if (anchorChecks.length && anchorChecks.every((c) => c.status === "file_deleted")) {
+      overall = "likely_resolved_file_deleted";
+    } else if (anchorChecks.length && anchorChecks.every((c) => c.status === "symbol_missing" || c.status === "file_deleted")) {
+      overall = "likely_resolved_symbol_missing";
+    } else if (anchorChecks.some((c) => c.status !== "intact")) {
+      overall = "drifted_needs_refresh";
+    }
+
+    return {
+      id: finding.id,
+      title: finding.title,
+      category: finding.category,
+      first_seen: finding.first_seen || null,
+      status: overall,
+      anchors: anchorChecks,
+    };
+  });
+
+  const summary = {
+    total_open: results.length,
+    intact: results.filter((r) => r.status === "intact").length,
+    drifted: results.filter((r) => r.status === "drifted_needs_refresh").length,
+    likely_resolved: results.filter((r) => r.status.startsWith("likely_resolved")).length,
+  };
+
+  return {
+    repo: identity.repoName,
+    last_audit_commit: lastCommit,
+    current_commit: currentCommit || "working tree (no git)",
+    summary,
+    findings: results,
+  };
+}
+
 function runCli() {
   const { cmd, opts } = parseCliArgs(process.argv.slice(2));
-  if (!cmd || !["status", "reject", "unreject"].includes(cmd)) {
+  if (!cmd || !["status", "reconcile", "reject", "unreject"].includes(cmd)) {
     console.error(
       "Usage:\n" +
         "  node memory.mjs status [--repo <dir>]\n" +
+        "  node memory.mjs reconcile [--repo <dir>]\n" +
         '  node memory.mjs reject [--repo <dir>] --id <DEBT-NN> --reason "<why>" [--title "<title>"] [--evidence "<file:line>"]\n' +
         '  node memory.mjs unreject [--repo <dir>] --title "<match>"'
     );
@@ -232,6 +329,11 @@ function runCli() {
         2
       )
     );
+    return;
+  }
+
+  if (cmd === "reconcile") {
+    console.log(JSON.stringify(reconcileOpenFindings(identity, memo), null, 2));
     return;
   }
 

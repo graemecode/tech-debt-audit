@@ -1,0 +1,15 @@
+{
+  "name": "tech-debt-audit",
+  "owner": {
+    "name": "Graeme"
+  },
+  "metadata": {
+    "description": "Plugin marketplace catalog for tech-debt-audit."
+  },
+  "plugins": [
+    {
+      "name": "tech-debt-audit",
+      "source": "./"
+    }
+  ]
+}

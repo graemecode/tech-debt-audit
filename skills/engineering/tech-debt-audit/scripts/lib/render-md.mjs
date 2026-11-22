@@ -28,6 +28,12 @@ export function renderMarkdownReport(auditData, context = {}) {
   lines.push(`- **Audited at**: ${audit.date} on commit \`${audit.commit}\``);
   lines.push(`- **Effort level**: ${audit.effort} (${audit.mode || "full"})`);
   lines.push(`- **Scope inspected**: ${audit.scope}`);
+  if (audit.coverage?.inspected?.length) {
+    lines.push(`- **Inspected areas**: ${audit.coverage.inspected.map((x) => `\`${x}\``).join(", ")}`);
+  }
+  if (audit.coverage?.deferred?.length) {
+    lines.push(`- **Deferred areas**: ${audit.coverage.deferred.join(", ")}`);
+  }
   lines.push(`- **Not audited**: ${audit.not_audited}`);
   lines.push(`- **Verification commands discovered**: ${verCmds}`);
   lines.push(`- **Prior audit**: ${priorInfo}`);
@@ -118,6 +124,12 @@ export function renderMarkdownReport(auditData, context = {}) {
     lines.push(`- **Payoff**: ${f.payoff}`);
     lines.push(`- **Falsification check**: ${f.falsification}`);
     lines.push(`- **Suggested slice**: ${f.slice}`);
+    if (f.out_of_scope?.length) {
+      lines.push(`- **Out of scope**: ${f.out_of_scope.join("; ")}`);
+    }
+    if (f.stop_conditions?.length) {
+      lines.push(`- **STOP conditions**: ${f.stop_conditions.join("; ")}`);
+    }
     if (f.gate) {
       lines.push(
         `- **Verification gate** (${f.gate.status}): \`${f.gate.command}\` -> ${f.gate.expected}${

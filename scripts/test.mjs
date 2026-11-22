@@ -107,12 +107,12 @@ function makePlantedRepo() {
   git(dir, ["add", "."]);
   git(dir, ["commit", "-m", "feat: initial service"]);
 
-  // Co-change src/auth/guard.ts and src/routes/billing.ts across 4 commits including fixes + revert
+  // Co-change src/auth/guard.ts and src/routes/billing.ts across 4 commits including fixes + revert + domain-noun "bug tracker" commit
   const commits = [
     "fix(auth): handle missing role on billing route",
     "fix(billing): align admin check with auth guard",
     "revert: undo broken billing role bypass",
-    "feat(billing): tighten guard check",
+    "feat(billing): wire bug tracker report endpoint",
   ];
   commits.forEach((msg, idx) => {
     writeFileSync(
@@ -552,6 +552,67 @@ test("render-report.mjs emits valid inline JS, handles zero findings cleanly, an
     const tmpJs = join(fx.cacheDir, "client-check.js");
     writeFileSync(tmpJs, jsMatch[1], "utf8");
     execFileSync(process.execPath, ["--check", tmpJs], { stdio: "pipe" });
+  } finally {
+    fx.cleanup();
+  }
+});
+
+test("validateAudit rejects zero-width strings and bidi control characters, and memory.mjs reconcile detects intact, drifted, and resolved findings", () => {
+  const fx = makePlantedRepo();
+  try {
+    const env = { TECH_DEBT_AUDIT_CACHE_DIR: fx.cacheDir };
+    const tmpInput = join(fx.cacheDir, "hygiene.json");
+
+    // 1. Zero-width invisible title rejected
+    const zw = makeValidAudit(fx.dir);
+    zw.findings[0].title = "\u200B\u200C   ";
+    writeFileSync(tmpInput, JSON.stringify(zw));
+    const rZw = runNode(RENDER, ["--input", tmpInput, "--repo", fx.dir, "--validate-only"]);
+    assert.notEqual(rZw.status, 0);
+    assert.match(rZw.stderr, /forbidden control|visible string/);
+
+    // 2. Trojan Source bidi override rejected
+    const bidi = makeValidAudit(fx.dir);
+    bidi.findings[0].slice = "Safe slice \u202E hidden override";
+    writeFileSync(tmpInput, JSON.stringify(bidi));
+    const rBidi = runNode(RENDER, ["--input", tmpInput, "--repo", fx.dir, "--validate-only"]);
+    assert.notEqual(rBidi.status, 0);
+    assert.match(rBidi.stderr, /forbidden control/);
+
+    // 3. Seed open findings via render-report, then test reconcile across intact, drifted, and missing_symbol
+    const clean = makeValidAudit(fx.dir);
+    clean.findings[0].out_of_scope = ["Do not alter public auth headers"];
+    clean.findings[0].stop_conditions = ["Baseline npm test fails before edits"];
+    writeFileSync(tmpInput, JSON.stringify(clean));
+    const outHtml = join(fx.cacheDir, "reconcile.html");
+    const rSeed = runNode(RENDER, ["--input", tmpInput, "--repo", fx.dir, "--out", outHtml, "--no-open"], { env });
+    assert.equal(rSeed.status, 0, rSeed.stderr);
+    const html = readFileSync(outHtml, "utf8");
+    assert.ok(html.includes("Do not alter public auth headers"));
+    assert.ok(html.includes("Baseline npm test fails before edits"));
+    assert.ok(html.includes("0. Drift check first:"));
+
+    // Before edits: both findings intact
+    const rec1 = JSON.parse(runNode(MEMORY, ["reconcile", "--repo", fx.dir], { env }).stdout);
+    assert.equal(rec1.summary.intact, 2);
+    assert.equal(rec1.summary.drifted, 0);
+    assert.equal(rec1.summary.likely_resolved, 0);
+
+    // Shift symbol in src/auth/guard.ts down by 10 lines -> drifted; delete legacyParse symbol -> likely_resolved
+    writeFileSync(
+      join(fx.dir, "src", "auth", "guard.ts"),
+      "\n".repeat(10) + "export function checkAccess(user: { role: string }) {\n  return user.role === 'admin';\n}\n"
+    );
+    writeFileSync(
+      join(fx.dir, "src", "legacy", "migration.ts"),
+      "export function modernParse(raw: unknown) { return raw; }\n"
+    );
+    const rec2 = JSON.parse(runNode(MEMORY, ["reconcile", "--repo", fx.dir], { env }).stdout);
+    const f1 = rec2.findings.find((f) => f.id === "DEBT-01");
+    const f2 = rec2.findings.find((f) => f.id === "DEBT-02");
+    assert.equal(f1.status, "drifted_needs_refresh");
+    assert.equal(f1.anchors[0].current_line, 11);
+    assert.equal(f2.status, "likely_resolved_symbol_missing");
   } finally {
     fx.cleanup();
   }

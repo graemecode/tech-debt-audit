@@ -8,6 +8,11 @@
     "mode": "scoped",
     "scope": "src/routes, src/auth, scripts",
     "effective_paths": ["src/routes", "src/auth", "scripts"],
+    "coverage": {
+      "inspected": ["src/routes", "src/auth", "scripts"],
+      "deferred": [],
+      "out_of_scope": ["frontend app", "deployment configuration"]
+    },
     "not_audited": "frontend app, deployment configuration",
     "verification_commands": [
       { "command": "npm test -- auth", "status": "observed: 14 passed" },
@@ -52,6 +57,11 @@
       "payoff": "One trusted auth boundary prevents repeated permission bugs and makes new routes safe by default.",
       "falsification": "Checked auth middleware, route callers, and git log -n 5 across all 3 files; no ADR documents intentional status-code divergence.",
       "slice": "Add characterization tests locking current responses for all 3 routes, then extract requireAccountAccess without altering status codes.",
+      "out_of_scope": ["Normalizing 403 vs 404 responses", "Touching unrelated middleware"],
+      "stop_conditions": [
+        "Baseline `npm test -- auth` fails before edits",
+        "Any cited route handler already delegates to a shared access helper"
+      ],
       "why_this_order": "Highest interest rate on a security-critical boundary with a clean bounded first slice.",
       "gate": {
         "command": "npm test -- auth",

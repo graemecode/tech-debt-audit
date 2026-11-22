@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 370" width="1120" height="370" role="img" aria-label="tech-debt-audit 4-stage architecture pipeline (light)">
+  <rect width="1120" height="370" rx="14" fill="#f6f6f3" stroke="#dce1dc" stroke-width="1"/>
+  <text x="40" y="36" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" font-weight="700" letter-spacing="0.08em" fill="#0f766e">ARCHITECTURE · DETERMINISTIC SCRIPTS + FRONTIER JUDGMENT</text>
+  <text x="40" y="56" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif" font-size="15" font-weight="600" fill="#182026">Scripts do the mechanical cartography. The model spends its context on falsification and payoff.</text>
+
+  
+      <rect x="40" y="74" width="242" height="186" rx="10" fill="#ffffff" stroke="#dce1dc" stroke-width="1.2"/>
+      <rect x="40" y="74" width="242" height="4" rx="2" fill="#0f766e"/>
+      <text x="56" y="102" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" font-weight="700" fill="#0f766e">01</text>
+      <text x="80" y="102" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif" font-size="12" font-weight="700" letter-spacing="0.04em" fill="#182026">QUANTITATIVE RECON</text>
+      <text x="56" y="123" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#5c6975">scripts/recon.mjs · ~2.4s</text>
+      <line x1="56" y1="138" x2="266" y2="138" stroke="#dce1dc" stroke-width="1"/>
+      <circle cx="60" cy="166" r="2.5" fill="#0f766e"/><text x="71" y="170" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif" font-size="12" fill="#5c6975">Churn × fix/revert hotspots</text>
+<circle cx="60" cy="188" r="2.5" fill="#0f766e"/><text x="71" y="192" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif" font-size="12" fill="#5c6975">Cross-dir co-change pairs</text>
+<circle cx="60" cy="210" r="2.5" fill="#0f766e"/><text x="71" y="214" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif" font-size="12" fill="#5c6975">Package-scoped test gaps</text>
+<circle cx="60" cy="232" r="2.5" fill="#0f766e"/><text x="71" y="236" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif" font-size="12" fill="#5c6975">Docs, analyzers &amp; prior memo</text>
+      <line x1="282" y1="167" x2="300" y2="167" stroke="#94a0ab" stroke-width="1.5"/><polygon points="299,162.5 306,167 299,171.5" fill="#94a0ab"/>
+
+      <rect x="306" y="74" width="242" height="186" rx="10" fill="#ffffff" stroke="#dce1dc" stroke-width="1.2"/>
+      <rect x="306" y="74" width="242" height="4" rx="2" fill="#c2410c"/>
+      <text x="322" y="102" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" font-weight="700" fill="#c2410c">02</text>
+      <text x="346" y="102" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif" font-size="12" font-weight="700" letter-spacing="0.04em" fill="#182026">ARCHITECTURAL JUDGMENT</text>
+      <text x="322" y="123" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#5c6975">Gemini Neon · Claude · Codex</text>
+      <line x1="322" y1="138" x2="532" y2="138" stroke="#dce1dc" stroke-width="1"/>
+      <circle cx="326" cy="166" r="2.5" fill="#c2410c"/><text x="337" y="170" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif" font-size="12" fill="#5c6975">Parallel read of intent &amp; hotspots</text>
+<circle cx="326" cy="188" r="2.5" fill="#c2410c"/><text x="337" y="192" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif" font-size="12" fill="#5c6975">Mandatory falsification check</text>
+<circle cx="326" cy="210" r="2.5" fill="#c2410c"/><text x="337" y="214" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif" font-size="12" fill="#5c6975">Run cheap read-only gates</text>
+<circle cx="326" cy="232" r="2.5" fill="#c2410c"/><text x="337" y="236" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif" font-size="12" fill="#5c6975">Emit compact audit JSON IR</text>
+      <line x1="548" y1="167" x2="566" y2="167" stroke="#94a0ab" stroke-width="1.5"/><polygon points="565,162.5 572,167 565,171.5" fill="#94a0ab"/>
+
+      <rect x="572" y="74" width="242" height="186" rx="10" fill="#ffffff" stroke="#dce1dc" stroke-width="1.2"/>
+      <rect x="572" y="74" width="242" height="4" rx="2" fill="#0f766e"/>
+      <text x="588" y="102" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" font-weight="700" fill="#0f766e">03</text>
+      <text x="612" y="102" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif" font-size="12" font-weight="700" letter-spacing="0.04em" fill="#182026">VALIDATE &amp; RENDER</text>
+      <text x="588" y="123" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#5c6975">scripts/render-report.mjs</text>
+      <line x1="588" y1="138" x2="798" y2="138" stroke="#dce1dc" stroke-width="1"/>
+      <circle cx="592" cy="166" r="2.5" fill="#0f766e"/><text x="603" y="170" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif" font-size="12" fill="#5c6975">Verify path + line &lt;= EOF</text>
+<circle cx="592" cy="188" r="2.5" fill="#0f766e"/><text x="603" y="192" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif" font-size="12" fill="#5c6975">Block accidental secret leaks</text>
+<circle cx="592" cy="210" r="2.5" fill="#0f766e"/><text x="603" y="214" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif" font-size="12" fill="#5c6975">Compute Resolved / New delta</text>
+<circle cx="592" cy="232" r="2.5" fill="#0f766e"/><text x="603" y="236" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif" font-size="12" fill="#5c6975">Render offline HTML + ledger</text>
+      <line x1="814" y1="167" x2="832" y2="167" stroke="#94a0ab" stroke-width="1.5"/><polygon points="831,162.5 838,167 831,171.5" fill="#94a0ab"/>
+
+      <rect x="838" y="74" width="242" height="186" rx="10" fill="#ffffff" stroke="#dce1dc" stroke-width="1.2"/>
+      <rect x="838" y="74" width="242" height="4" rx="2" fill="#067647"/>
+      <text x="854" y="102" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" font-weight="700" fill="#067647">04</text>
+      <text x="878" y="102" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif" font-size="12" font-weight="700" letter-spacing="0.04em" fill="#182026">CLOSED-LOOP HANDOFF</text>
+      <text x="854" y="123" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#5c6975">Browser UX + memory.mjs</text>
+      <line x1="854" y1="138" x2="1064" y2="138" stroke="#dce1dc" stroke-width="1"/>
+      <circle cx="858" cy="166" r="2.5" fill="#067647"/><text x="869" y="170" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif" font-size="12" fill="#5c6975">Effort × Risk quick-win matrix</text>
+<circle cx="858" cy="188" r="2.5" fill="#067647"/><text x="869" y="192" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif" font-size="12" fill="#5c6975">1-click Copy Agent Prompt</text>
+<circle cx="858" cy="210" r="2.5" fill="#067647"/><text x="869" y="214" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif" font-size="12" fill="#5c6975">Batch sprint export</text>
+<circle cx="858" cy="232" r="2.5" fill="#067647"/><text x="869" y="236" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif" font-size="12" fill="#5c6975">/tech-debt-audit reject loop</text>
+      
+
+  <!-- Self-healing validation loop: 03 -> 02 -->
+  <path d="M 693 260 L 693 286 Q 693 296 683 296 L 437 296 Q 427 296 427 286 L 427 267" fill="none" stroke="#c2410c" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <polygon points="422.5,269 427,261 431.5,269" fill="#c2410c"/>
+  <rect x="385" y="284" width="350" height="24" rx="12" fill="#fff7ed" stroke="#c2410c" stroke-width="0.9"/>
+  <text x="560" y="300" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#c2410c">Self-healing loop: bad line / secret → fix JSON</text>
+
+  <!-- Longitudinal memory loop: 04 -> 01 -->
+  <path d="M 959 260 L 959 328 Q 959 338 949 338 L 171 338 Q 161 338 161 328 L 161 267" fill="none" stroke="#0f766e" stroke-width="1.5"/>
+  <polygon points="156.5,269 161,261 165.5,269" fill="#0f766e"/>
+  <rect x="300" y="326" width="520" height="24" rx="12" fill="#e6f4f1" stroke="#0f766e" stroke-width="0.9"/>
+  <text x="560" y="342" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#0f766e">Durable cache memo: open-finding deltas + human rejections feed next run</text>
+</svg>

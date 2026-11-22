@@ -92,7 +92,7 @@ const ESCAPE_HATCH_PATTERNS = [
   { key: "silent_catch", regex: /\bcatch\s*(?:\([^)]*\))?\s*\{\s*(?:\/\/[^\n]*\n\s*)?\}/g },
 ];
 
-const FIX_COMMIT_REGEX = /\b(fix|fixes|fixed|bug|bugfix|hotfix|patch|regression|broken|crash)\b|^fix(\([^)]+\))?:/i;
+const FIX_COMMIT_REGEX = /^fix(\([^)]+\))?:|\b(fix(?:es|ed|ing)?|bugfix|hotfix|regression|crash(?:es|ed|ing)?|broken)\b/i;
 const REVERT_COMMIT_REGEX = /^revert\b|\breverted\b/i;
 
 function parseArgs(argv) {

@@ -30,6 +30,20 @@ if (plugin) {
   }
 }
 
+const marketplacePath = join(ROOT, ".claude-plugin", "marketplace.json");
+if (existsSync(marketplacePath)) {
+  try {
+    const mp = JSON.parse(readFileSync(marketplacePath, "utf8"));
+    if (mp.name === plugin?.name && Array.isArray(mp.plugins) && mp.plugins.some((p) => p.name === plugin?.name)) {
+      ok("marketplace.json matches plugin.json");
+    } else {
+      fail("marketplace.json name/plugins mismatch with plugin.json");
+    }
+  } catch (e) {
+    fail(`marketplace.json invalid JSON: ${e.message}`);
+  }
+}
+
 // --- 2. SKILL.md frontmatter ---
 function parseFrontmatter(text) {
   const m = text.match(/^---\n([\s\S]*?)\n---/);
@@ -70,16 +84,24 @@ for (const skillFile of skillFiles) {
   else fail(`version mismatch: SKILL.md "${skillVersion}" vs plugin.json "${plugin?.version}"`);
 }
 
-// --- 3. Relative markdown links resolve ---
+// --- 3. Relative markdown links and HTML img/source assets resolve ---
 const stripFences = (text) => text.replace(/```[\s\S]*?```/g, "");
 for (const file of findFiles(ROOT, (name) => name.endsWith(".md"))) {
   const text = stripFences(readFileSync(file, "utf8"));
+  const relFile = file.slice(ROOT.length + 1);
   for (const m of text.matchAll(/\[[^\]]*\]\(([^)\s]+)\)/g)) {
     const target = m[1];
     if (/^(https?:|mailto:|#)/.test(target)) continue;
     const resolved = join(dirname(file), target.split("#")[0]);
-    if (existsSync(resolved)) ok(`link ok: ${target} (in ${file.slice(ROOT.length + 1)})`);
-    else fail(`broken link "${target}" in ${file.slice(ROOT.length + 1)}`);
+    if (existsSync(resolved)) ok(`link ok: ${target} (in ${relFile})`);
+    else fail(`broken link "${target}" in ${relFile}`);
+  }
+  for (const m of text.matchAll(/(?:src|srcset)=["']([^"']+)["']/g)) {
+    const target = m[1].trim().split(/\s+/)[0];
+    if (/^(https?:|data:|#)/.test(target)) continue;
+    const resolved = join(dirname(file), target.split("#")[0]);
+    if (existsSync(resolved)) ok(`asset ok: ${target} (in ${relFile})`);
+    else fail(`broken asset "${target}" in ${relFile}`);
   }
 }
 

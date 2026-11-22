@@ -15,6 +15,11 @@ Write this JSON to a temporary file (e.g. `/tmp/tech-debt-input-<repo>.json`) an
     "mode": "full|branch|scoped",
     "scope": "src/routes, src/auth, scripts",
     "effective_paths": ["src/routes", "src/auth", "scripts"],
+    "coverage": {
+      "inspected": ["src/routes", "src/auth", "scripts"],
+      "deferred": ["src/workers (budgeted for follow-up)"],
+      "out_of_scope": ["frontend app", "deployment configuration"]
+    },
     "not_audited": "frontend app, deployment configuration",
     "verification_commands": [
       { "command": "npm test -- auth", "status": "observed: 14 passed" },
@@ -46,6 +51,11 @@ Write this JSON to a temporary file (e.g. `/tmp/tech-debt-input-<repo>.json`) an
       "payoff": "Single auth boundary eliminates repeated bugs and makes new route handlers safe by default.",
       "falsification": "Checked all 3 route handlers, auth middleware, and git log -n 5; no ADR documents per-route divergence and error codes differ accidentally.",
       "slice": "Add characterization tests for the 3 routes, then extract requireAccountAccess without changing HTTP status codes.",
+      "out_of_scope": ["Changing HTTP error status codes", "Rewriting unrelated auth middleware"],
+      "stop_conditions": [
+        "Baseline `npm test -- auth` fails before your edits",
+        "Any cited route handler has already been refactored to shared middleware"
+      ],
       "why_this_order": "Highest interest rate on a security-critical boundary with a clean bounded first slice.",
       "gate": {
         "command": "npm test -- auth",
@@ -104,4 +114,6 @@ Write this JSON to a temporary file (e.g. `/tmp/tech-debt-input-<repo>.json`) an
 - `origin`: required (`"introduced"` | `"amplified"` | `"pre-existing"`) when `audit.mode === "branch"`; `null` otherwise.
 - `effective_paths`: copy `scope.effective_paths` from `recon.mjs` so scoped/branch runs never falsely mark out-of-scope prior findings as resolved.
 - `recon_summary`: optional top hotspots & co-change pairs copied from `recon.mjs` for transparency in the HTML report appendix.
+- **Input hygiene & bounds**: max 5MB JSON input, max nesting depth 32, required strings must contain visible non-whitespace characters, and forbidden control or invisible bidi/format characters (`\u202E`, etc.) fail validation.
+- **Executor handoff fields** (optional, strongly recommended): `out_of_scope` (array of strings) and `stop_conditions` (array of strings) feed directly into the HTML report's **Copy Agent Prompt** handoff alongside a mechanical `git rev-parse --short HEAD` drift check.
 - **Secret guardrail**: any string matching private keys, AWS/GitHub/Slack/Google/Stripe-style keys, embedded URL credentials, or JWTs causes validation to fail immediately.

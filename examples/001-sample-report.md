@@ -5,6 +5,7 @@
 - **Audited at**: 2026-11-22 on commit `abc1234`
 - **Effort level**: quick (scoped)
 - **Scope inspected**: src/routes, src/auth, scripts
+- **Inspected areas**: `src/routes`, `src/auth`, `scripts`
 - **Not audited**: frontend app, deployment configuration
 - **Verification commands discovered**: `npm test -- auth` -> observed: 14 passed; `npx tsc --noEmit` -> observed: 0 errors
 - **Prior audit**: none found
@@ -44,6 +45,8 @@
 - **Payoff**: One trusted auth boundary prevents repeated permission bugs and makes new routes safe by default.
 - **Falsification check**: Checked auth middleware, route callers, and git log -n 5 across all 3 files; no ADR documents intentional status-code divergence.
 - **Suggested slice**: Add characterization tests locking current responses for all 3 routes, then extract requireAccountAccess without altering status codes.
+- **Out of scope**: Normalizing 403 vs 404 responses; Touching unrelated middleware
+- **STOP conditions**: Baseline `npm test -- auth` fails before edits; Any cited route handler already delegates to a shared access helper
 - **Verification gate** (observed): `npm test -- auth` -> all existing and new route characterization tests pass (observed: 14 passed in 1.1s before changes)
 - **Effort**: M
 - **Fix risk**: MED - Live route HTTP error status semantics must stay backward-compatible for clients.

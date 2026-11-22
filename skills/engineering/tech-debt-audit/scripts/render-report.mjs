@@ -6,6 +6,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import {
+  MAX_AUDIT_BYTES,
   extractAnchors,
   formatTimestamp,
   getRepoIdentity,
@@ -193,6 +194,10 @@ function main() {
     rawJson = opts.input === "-" ? readFileSync(0, "utf8") : readFileSync(opts.input, "utf8");
   } catch (err) {
     console.error(`Error reading input: ${err.message}`);
+    process.exit(1);
+  }
+  if (Buffer.byteLength(rawJson, "utf8") > MAX_AUDIT_BYTES) {
+    console.error(`Error: audit JSON exceeds max size (${MAX_AUDIT_BYTES} bytes)`);
     process.exit(1);
   }
 

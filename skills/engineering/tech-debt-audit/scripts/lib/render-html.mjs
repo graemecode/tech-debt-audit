@@ -175,11 +175,21 @@ function renderFindingCard(f, isBranch, showDelta) {
         <ul class="evidence">${evidenceItems}</ul>
       </div>
       <details class="rigor-details">
-        <summary>Falsification check, risk &amp; confidence rationale</summary>
+        <summary>Falsification check, boundaries, stop conditions &amp; rationale</summary>
         <div class="rigor-body">
           <p><strong>Falsification check:</strong> ${escapeHtml(f.falsification)}</p>
           <p><strong>Fix risk (${escapeHtml(f.fix_risk)}):</strong> ${escapeHtml(f.fix_risk_reason)}</p>
           <p><strong>Confidence (${escapeHtml(f.confidence)}):</strong> ${escapeHtml(f.confidence_reason)}</p>
+          ${
+            f.out_of_scope?.length
+              ? `<p><strong>Out of scope:</strong> ${f.out_of_scope.map((x) => escapeHtml(x)).join(" &middot; ")}</p>`
+              : ""
+          }
+          ${
+            f.stop_conditions?.length
+              ? `<p><strong>STOP conditions:</strong> ${f.stop_conditions.map((x) => escapeHtml(x)).join(" &middot; ")}</p>`
+              : ""
+          }
         </div>
       </details>
     </div>
@@ -358,6 +368,8 @@ export function renderHtmlReport(auditData, context = {}) {
       confidence: f.confidence,
       gate: f.gate,
       evidence: f.evidence,
+      out_of_scope: f.out_of_scope || [],
+      stop_conditions: f.stop_conditions || [],
     })),
   };
 
@@ -680,6 +692,16 @@ export function renderHtmlReport(auditData, context = {}) {
 
     <h2>Coverage &amp; Verification</h2>
     <section class="note">
+      ${
+        audit.coverage?.inspected?.length
+          ? `<p><strong>Inspected areas:</strong> ${audit.coverage.inspected.map((x) => `<code>${escapeHtml(x)}</code>`).join(" &middot; ")}</p>`
+          : ""
+      }
+      ${
+        audit.coverage?.deferred?.length
+          ? `<p><strong>Deferred:</strong> ${audit.coverage.deferred.map((x) => escapeHtml(x)).join(" &middot; ")}</p>`
+          : ""
+      }
       <p><strong>Not audited:</strong> ${escapeHtml(audit.not_audited)}</p>
       <p><strong>Verification commands discovered:</strong> ${verCmdHtml}</p>
     </section>
@@ -788,11 +810,20 @@ export function renderHtmlReport(auditData, context = {}) {
       function buildAgentPrompt(f) {
         const ev = (f.evidence || []).map((e) => "- " + e.path + ":" + e.line + " (" + e.symbol + "): " + e.note).join("\\n");
         const gate = f.gate ? f.gate.command + " -> " + f.gate.expected + " (" + f.gate.status + ")" : "Manual verification required";
+        const oos = (f.out_of_scope && f.out_of_scope.length)
+          ? f.out_of_scope.map((x) => "- " + x).join("\\n")
+          : "- Unrelated refactors, style cleanups, or callers outside this slice";
+        const stops = (f.stop_conditions && f.stop_conditions.length)
+          ? f.stop_conditions.map((x) => "- " + x).join("\\n")
+          : "- Any cited file or symbol no longer matches the evidence above\\n- Baseline verification gate fails before your edits";
         return [
           "Pay down technical debt item " + f.id + ": " + f.title,
           "",
-          "Repo: " + data.repo_name + " (audited at " + data.commit + ")",
+          "Repo: " + data.repo_name + " (audited at commit " + data.commit + ")",
           "Scope/Owner: " + f.owner_scope + " | Effort: " + f.effort + " | Risk: " + f.fix_risk + " | Blast radius: " + f.blast_radius,
+          "",
+          "0. Drift check first:",
+          "Run \`git rev-parse --short HEAD\` and confirm the cited files/symbols below still match before editing.",
           "",
           "Current cost: " + f.current_cost,
           "Interest rate (" + f.interest_rate + "): " + f.interest_rate_reason,
@@ -804,10 +835,16 @@ export function renderHtmlReport(auditData, context = {}) {
           "Suggested bounded slice:",
           f.slice,
           "",
+          "Out of scope (do NOT touch):",
+          oos,
+          "",
+          "STOP conditions (stop and report instead of improvising):",
+          stops,
+          "",
           "Risk constraint (" + f.fix_risk + "): " + f.fix_risk_reason,
           "Verification gate: " + gate,
           "",
-          "Keep the diff bounded to this slice. Preserve existing behavior unless explicitly fixing a bug, verify with the gate above, and summarize what changed."
+          "Keep the diff bounded to this slice. Prefer deletion and simplification over new abstraction layers. Verify with the gate above and report what changed."
         ].join("\\n");
       }
 
